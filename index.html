@@ -22,7 +22,7 @@
         .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
         .pairing-box h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
         .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
-        .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin:bottom: 10px; color: white; user-select: all; }
+        .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
         .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
         .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn:disabled { background-color: #555; cursor: not-allowed; }
@@ -69,7 +69,7 @@
             <p style="font-size: 11px; margin-bottom: 20px; color: #777;">Kirim ID ini ke pasangan Anda, ATAU masukkan ID pasangan Anda di bawah ini:</p>
 
             <input type="text" id="partnerCode" class="input-code" placeholder="MASUKKAN ID PASANGAN" maxlength="6">
-            <button class="btn" id="connectBtn" onclick="hubungkanKePasangan()" disabled>Hubungkan Kamera/Chat</button>
+            <button class="btn" id="connectBtn" onclick="hubungkanKePasangan()" disabled>Hubungkan Obrolan</button>
         </div>
     </div>
 
@@ -77,20 +77,20 @@
     <div id="app-screen">
         <div class="sidebar">
             <div class="nav-item active">💬</div>
-            <div class="nav-item" onclick="putuskanKoneksi()">🚪</div>
+            <div class="nav-item" onclick="putuskanKoneksi()" title="Tutup Ruangan">🚪</div>
         </div>
 
         <div class="content-area">
             <div class="header">
                 <div>
                     <h2 style="font-size: 16px;">Ruang Kita ❤️</h2>
-                    <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (P2P)</span>
+                    <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (P2P Aman)</span>
                 </div>
             </div>
 
             <div class="chat-history" id="chatHistory">
-                <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px;">
-                    Terowongan WebRTC berhasil dibuat.<br>Kalian berdua terhubung langsung tanpa server database. Obrolan akan hilang jika layar ini ditutup.
+                <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px; padding: 0 10px;">
+                    Terowongan WebRTC berhasil dibuat!<br><br>Kalian terhubung langsung tanpa server database. Resolusi foto yang dikirim tidak akan dikompresi. Obrolan akan otomatis musnah jika layar ini direfresh atau ditutup.
                 </div>
             </div>
 
@@ -105,10 +105,9 @@
     </div>
 
     <script>
-        let peer;           // Mesin koneksi kita
-        let koneksi;        // Terowongan obrolan ke pasangan
+        let peer;           
+        let koneksi;        
 
-        // Membuat ID Acak 5 Karakter (Contoh: X8A9P)
         function buatIDPendek() {
             return Math.random().toString(36).substring(2, 7).toUpperCase();
         }
@@ -118,68 +117,85 @@
         const statusText = document.getElementById('status-text');
         const connectBtn = document.getElementById('connectBtn');
 
-        // 1. INISIALISASI PEERJS (MEMBANGUN IDENTITAS HP)
-        peer = new Peer(myID);
+        // 1. INISIALISASI DENGAN SERVER STUN GOOGLE (MENEMBUS BLOKIR PROVIDER)
+        peer = new Peer(myID, {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
+                ]
+            }
+        });
 
         peer.on('open', function(id) {
             displayCode.innerText = id;
             statusText.innerText = "Menunggu Pasangan...";
             statusText.style.color = "#4caf50";
             statusText.style.background = "rgba(76,175,80,0.1)";
-            connectBtn.disabled = false; // Tombol bisa diklik
+            connectBtn.disabled = false; 
         });
 
         peer.on('error', function(err) {
-            alert("Kesalahan koneksi WebRTC: " + err);
+            alert("Kesalahan koneksi: " + err);
+            statusText.innerText = "Koneksi Gagal/Terputus";
+            statusText.style.color = "#ff4747";
+            connectBtn.disabled = false;
+            connectBtn.innerText = "Coba Hubungkan Lagi";
         });
 
-        // 2. JIKA ADA YANG MENGHUBUNGI KITA
+        // 2. JIKA HP PASANGAN MENGHUBUNGI KITA
         peer.on('connection', function(conn) {
             koneksi = conn;
-            siapkanTerowongan();
+            
+            // PERBAIKAN: Hanya masuk ke ruang obrolan JIKA terowongan sudah 100% terbuka
+            koneksi.on('open', function() {
+                siapkanTerowongan();
+            });
         });
 
-        // 3. JIKA KITA YANG MENGHUBUNGI PASANGAN
+        // 3. JIKA KITA MENGHUBUNGI HP PASANGAN
         function hubungkanKePasangan() {
             const partnerID = document.getElementById('partnerCode').value.trim().toUpperCase();
             if (partnerID.length < 5) {
-                alert("ID Pasangan tidak valid!"); return;
+                alert("Masukkan ID Pasangan dengan benar!"); return;
             }
             
             statusText.innerText = "Menyambungkan...";
             connectBtn.innerText = "Loading...";
+            connectBtn.disabled = true; // Kunci tombol saat loading
             
-            koneksi = peer.connect(partnerID);
+            // Perintah membangun terowongan data
+            koneksi = peer.connect(partnerID, { reliable: true });
+            
+            // PERBAIKAN: Masuk ke ruangan jika koneksi sukses ditembus
             koneksi.on('open', function() {
                 siapkanTerowongan();
             });
         }
 
-        // 4. MEMASUKI RUANGAN SETELAH TERHUBUNG
+        // 4. LOGIKA OBROLAN (SETELAH MASUK RUANGAN)
         function siapkanTerowongan() {
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
 
-            // Mendengarkan pesan yang datang dari pasangan
             koneksi.on('data', function(data) {
                 if (data.tipe === 'teks') {
                     tampilkanPesanKeLayar(data.isi, 'you', data.waktu);
                 } else if (data.tipe === 'gambar') {
-                    tampilkanPesanKeLayar(`<img src="${data.isi}" alt="Foto dari pasangan">`, 'you', data.waktu);
+                    tampilkanPesanKeLayar(`<img src="${data.isi}" alt="Foto Pasangan">`, 'you', data.waktu);
                 } else if (data.tipe === 'buzz') {
                     tampilkanPesanKeLayar("<em>💓 Pasangan mengirim getaran...</em>", 'you', data.waktu);
                     animasiGoyang();
                 }
             });
 
-            // Jika pasangan tiba-tiba keluar/menutup browser
             koneksi.on('close', function() {
-                alert("Koneksi terputus! Pasanganmu telah keluar dari ruangan.");
-                location.reload(); // Paksa muat ulang ke halaman awal
+                alert("Koneksi terputus! Pasanganmu keluar dari ruangan atau sinyalnya hilang.");
+                location.reload(); 
             });
         }
 
-        // --- FUNGSI MENGIRIM PESAN ---
         function dapatkanWaktu() {
             const now = new Date();
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -194,22 +210,17 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // Kirim Teks
         function kirimTeks() {
             const input = document.getElementById('messageInput');
             const pesan = input.value.trim();
             if (pesan !== "" && koneksi && koneksi.open) {
                 const waktu = dapatkanWaktu();
-                // 1. Tampilkan di layar sendiri
                 tampilkanPesanKeLayar(pesan, 'me', waktu);
-                
-                // 2. Kirim menyeberangi internet ke HP Pasangan
                 koneksi.send({ tipe: 'teks', isi: pesan, waktu: waktu });
                 input.value = '';
             }
         }
 
-        // Kirim Gambar HD
         function kirimGambar(event) {
             const file = event.target.files[0];
             if (file && koneksi && koneksi.open) {
@@ -218,10 +229,9 @@
                     const dataGambarBase64 = e.target.result;
                     const waktu = dapatkanWaktu();
                     
-                    // Tampilkan di layar sendiri
                     tampilkanPesanKeLayar(`<img src="${dataGambarBase64}">`, 'me', waktu);
                     
-                    // Kirim ukuran aslinya ke pasangan (akan memakan waktu jika ukuran sangat besar)
+                    // Karena P2P, file asli/resolusi tinggi bisa dikirim tanpa kompresi
                     koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
                 }
                 reader.readAsDataURL(file);
@@ -229,7 +239,6 @@
             event.target.value = ''; 
         }
 
-        // Kirim Buzz / Getaran
         function kirimBuzz() {
             if (koneksi && koneksi.open) {
                 const waktu = dapatkanWaktu();
@@ -248,7 +257,8 @@
         }
 
         function putuskanKoneksi() {
-            if(confirm("Keluar dari ruangan? Semua riwayat obrolan tidak akan tersimpan.")) {
+            if(confirm("Yakin ingin keluar? Semua obrolan dan foto akan musnah selamanya.")) {
+                if (koneksi) koneksi.close();
                 location.reload();
             }
         }
