@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- LAPISAN KEAMANAN 1: Content Security Policy (Mencegah Eksekusi Script Eksternal) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src *;">
+    
     <title>RuangDua - P2P Secret Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
@@ -16,52 +19,34 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- ANIMASI DENYUT LOGO --- */
         @keyframes logo-pulse {
             0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 71, 126, 0.2)); }
             50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(255, 71, 126, 0.6)); }
             100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 71, 126, 0.2)); }
         }
 
-        .main-logo {
-            max-width: 200px;
-            width: 100%;
-            height: auto;
-            margin: 0 auto 15px auto;
-            display: block;
-            animation: logo-pulse 2.5s infinite ease-in-out;
-        }
-
-        /* --- SCREEN DISCLAIMER (HUKUM & COUNTER) --- */
+        .main-logo { max-width: 200px; width: 100%; height: auto; margin: 0 auto 15px auto; display: block; animation: logo-pulse 2.5s infinite ease-in-out; }
+        
         #disclaimer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
         .disclaimer-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #333; display: flex; flex-direction: column; max-height: 90vh; align-items: center; }
         .disclaimer-text { width: 100%; overflow-y: auto; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: #181818; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: justify; border: 1px solid #2d2d2d; }
         .disclaimer-text h3 { color: white; font-size: 14px; margin: 10px 0 5px 0; }
-        
         .checkbox-container { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: white; margin-bottom: 20px; cursor: pointer; width: 100%; }
         .checkbox-container input { margin-top: 3px; cursor: pointer; }
         .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn:disabled { background-color: #444; color: #888; cursor: not-allowed; }
 
-        /* Lencana Pengguna Aktif (Live Counter) */
         .visitor-counter { margin-top: 15px; font-size: 12px; color: #aaa; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #333; transition: 0.3s; }
         .visitor-counter span.count { color: #4caf50; font-weight: bold; font-size: 14px; text-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
         .visitor-counter .pulse { width: 8px; height: 8px; background-color: #4caf50; border-radius: 50%; box-shadow: 0 0 8px #4caf50; animation: pulse-animation 1.5s infinite; }
-        
-        @keyframes pulse-animation {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.7; }
-        }
+        @keyframes pulse-animation { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
 
-        /* --- SCREEN PAIRING (KONEKSI P2P) --- */
         #pairing-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); justify-content: center; align-items: center; z-index: 100; padding: 20px;}
         .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; border: 1px solid #333; }
         .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
         .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
         .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
 
-        /* --- LAYAR APLIKASI UTAMA --- */
         #app-screen { display: none; width: 100%; height: 100%; }
         .sidebar { width: 80px; background-color: var(--panel-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 1px solid #333; z-index: 10; }
         .nav-item { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; transition: 0.3s; }
@@ -91,35 +76,24 @@
     </style>
 </head>
 <body>
-
-    <!-- 0. LAYAR DISCLAIMER & HUKUM -->
     <div id="disclaimer-screen">
         <div class="disclaimer-box">
-            <!-- Panggilan langsung ke file gambar logo di repo GitHub -->
             <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
-            
             <h1 style="margin-top: 0;">Syarat & Ketentuan</h1>
             <div class="disclaimer-text">
                 <p>Selamat datang. Sebelum melanjutkan, Anda <strong>wajib</strong> membaca dan menyetujui ketentuan berikut:</p>
-                
                 <h3>1. Bebas Tanggung Jawab Pengembang</h3>
                 <p>Aplikasi ini dibangun murni untuk tujuan komunikasi privat (P2P). Pengembang <strong>tidak berafiliasi, tidak mendukung, dan tidak bertanggung jawab</strong> atas segala bentuk penyalahgunaan aplikasi ini untuk kegiatan ilegal atau pelanggaran hukum.</p>
-
                 <h3>2. Kepatuhan Hukum Negara (NKRI)</h3>
-                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Indonesia (termasuk UU ITE). Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu.</p>
-
+                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Indonesia. Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu.</p>
                 <h3>3. Privasi & Enkripsi Data</h3>
                 <p>Sistem beroperasi langsung antarlayar (P2P). Pengembang tidak memiliki *database* dan tidak menyimpan, memantau, atau menyadap pesan, foto, maupun data apa pun. Ruangan akan musnah otomatis saat ditutup.</p>
             </div>
-            
             <label class="checkbox-container">
                 <input type="checkbox" id="agreeCheck" onchange="toggleAgreeButton()">
                 Saya telah membaca dan menyetujui seluruh ketentuan.
             </label>
-            
             <button class="btn" id="btnAgree" onclick="terimaSyarat()" disabled>Setuju & Masuk</button>
-            
-            <!-- LIVE COUNTER -->
             <div class="visitor-counter">
                 <div class="pulse"></div> 
                 <span><span class="count" id="liveCount">--</span> orang sedang online saat ini</span>
@@ -127,46 +101,37 @@
         </div>
     </div>
 
-    <!-- 1. LAYAR PAIRING -->
     <div id="pairing-screen">
         <div class="pairing-box">
-            <!-- Panggilan langsung ke file gambar logo di repo GitHub -->
             <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
-            
             <div class="status-badge" id="status-text">Membuat Terowongan P2P...</div>
-            
             <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted);">ID KONEKSI ANDA:</p>
             <div class="code-display" id="myCode">...</div>
             <p style="font-size: 11px; margin-bottom: 20px; color: #777;">Kirim ID ini ke pasangan Anda, ATAU masukkan ID pasangan Anda di bawah ini:</p>
-
             <input type="text" id="partnerCode" class="input-code" placeholder="MASUKKAN ID PASANGAN" maxlength="6">
             <button class="btn" id="connectBtn" onclick="hubungkanKePasangan()" disabled>Hubungkan Obrolan</button>
         </div>
     </div>
 
-    <!-- 2. LAYAR APLIKASI UTAMA -->
     <div id="app-screen">
         <div class="sidebar">
             <div class="nav-item active">💬</div>
             <div class="nav-item" onclick="putuskanKoneksi()" title="Tutup Ruangan">🚪</div>
         </div>
-
         <div class="content-area">
             <div class="header">
                 <div>
                     <h2 style="font-size: 16px;">Ruang Kita ❤️</h2>
-                    <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (P2P Aman)</span>
+                    <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (Secure P2P)</span>
                 </div>
             </div>
-
             <div class="chat-history" id="chatHistory">
                 <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px; padding: 0 10px;">
-                    Terowongan WebRTC berhasil dibuat!<br><br>Kalian terhubung langsung tanpa server database. Obrolan akan otomatis musnah jika layar direfresh.
+                    Terowongan WebRTC berhasil dibuat!<br><br>Koneksi dilindungi oleh enkripsi End-to-End standar WebRTC dan filter anti-XSS.
                 </div>
             </div>
-
             <div class="chat-input-area">
-                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="kirimGambar(event)">
+                <input type="file" id="imageInput" accept="image/jpeg, image/png, image/webp" style="display: none;" onchange="kirimGambar(event)">
                 <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto">🖼️</button>
                 <button class="action-btn" style="color: #ffb703;" onclick="kirimBuzz()">💓</button>
                 <input type="text" id="messageInput" class="input-box" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') kirimTeks()">
@@ -175,27 +140,21 @@
         </div>
     </div>
 
-    <!-- SCRIPT LOGIKA UTAMA -->
     <script>
-        // --- LOGIKA LIVE COUNTER (NAIK TURUN) ---
+        // Gimmick Live Counter
         let jumlahOnline = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
-        
         function updateLiveCounter() {
             const perubahan = Math.floor(Math.random() * 7) - 3; 
             jumlahOnline += perubahan;
-
             if (jumlahOnline < 20) jumlahOnline = 20 + Math.floor(Math.random() * 5);
             if (jumlahOnline > 180) jumlahOnline = 180 - Math.floor(Math.random() * 10);
-
             document.getElementById('liveCount').innerText = jumlahOnline;
         }
         updateLiveCounter();
         setInterval(updateLiveCounter, 4500);
 
-        // --- LOGIKA DISCLAIMER ---
         function toggleAgreeButton() {
-            const isChecked = document.getElementById('agreeCheck').checked;
-            document.getElementById('btnAgree').disabled = !isChecked;
+            document.getElementById('btnAgree').disabled = !document.getElementById('agreeCheck').checked;
         }
 
         function terimaSyarat() {
@@ -204,9 +163,7 @@
             inisialisasiSistemWebRTC();
         }
 
-        // --- LOGIKA MESIN P2P (WEBRTC) ---
-        let peer;           
-        let koneksi;        
+        let peer, koneksi;        
 
         function buatIDPendek() {
             return Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -246,9 +203,7 @@
 
             peer.on('connection', function(conn) {
                 koneksi = conn;
-                koneksi.on('open', function() {
-                    siapkanTerowongan();
-                });
+                koneksi.on('open', siapkanTerowongan);
             });
         }
 
@@ -264,23 +219,30 @@
             btn.disabled = true; 
             
             koneksi = peer.connect(partnerID, { reliable: true });
-            
-            koneksi.on('open', function() {
-                siapkanTerowongan();
-            });
+            koneksi.on('open', siapkanTerowongan);
         }
 
+        // LAPISAN KEAMANAN 2: Validasi Payload
         function siapkanTerowongan() {
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
 
             koneksi.on('data', function(data) {
-                if (data.tipe === 'teks') {
-                    tampilkanPesanKeLayar(data.isi, 'you', data.waktu);
-                } else if (data.tipe === 'gambar') {
-                    tampilkanPesanKeLayar(`<img src="${data.isi}" alt="Foto Pasangan">`, 'you', data.waktu);
+                // Pastikan data adalah object (mencegah payload error/crash)
+                if (typeof data !== 'object' || data === null) return;
+                
+                // Mencegah manipulasi waktu dari sisi hacker
+                const waktu = (typeof data.waktu === 'string' && data.waktu.length <= 5) ? data.waktu : dapatkanWaktu();
+
+                if (data.tipe === 'teks' && typeof data.isi === 'string') {
+                    tampilkanPesanKeLayar(data.isi, 'teks', 'you', waktu);
+                } else if (data.tipe === 'gambar' && typeof data.isi === 'string') {
+                    // Validasi header Base64 hanya untuk format gambar yang aman
+                    if (data.isi.startsWith('data:image/jpeg') || data.isi.startsWith('data:image/png') || data.isi.startsWith('data:image/webp')) {
+                        tampilkanPesanKeLayar(data.isi, 'gambar', 'you', waktu);
+                    }
                 } else if (data.tipe === 'buzz') {
-                    tampilkanPesanKeLayar("<em>💓 Pasangan mengirim getaran...</em>", 'you', data.waktu);
+                    tampilkanPesanKeLayar("💓 Pasangan mengirim getaran...", 'buzz', 'you', waktu);
                     animasiGoyang();
                 }
             });
@@ -296,11 +258,33 @@
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
         }
 
-        function tampilkanPesanKeLayar(htmlContent, senderClass, time) {
+        // LAPISAN KEAMANAN 3: DOM Aman (100% Bebas XSS)
+        // Kita gunakan createTextNode/createElement bukan innerHTML!
+        function tampilkanPesanKeLayar(konten, tipe, senderClass, time) {
             const chatHistory = document.getElementById('chatHistory');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${senderClass}`;
-            msgDiv.innerHTML = `${htmlContent} <span class="time">${time}</span>`;
+
+            // Isi pesan disesuaikan dengan tipe untuk mencegah render HTML berbahaya
+            if (tipe === 'teks') {
+                const teksNode = document.createTextNode(konten);
+                msgDiv.appendChild(teksNode);
+            } else if (tipe === 'gambar') {
+                const imgNode = document.createElement('img');
+                imgNode.src = konten;
+                msgDiv.appendChild(imgNode);
+            } else if (tipe === 'buzz') {
+                const buzzNode = document.createElement('em');
+                buzzNode.textContent = konten;
+                msgDiv.appendChild(buzzNode);
+            }
+
+            // Tambahkan timestamp
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'time';
+            timeSpan.textContent = time;
+            msgDiv.appendChild(timeSpan);
+
             chatHistory.appendChild(msgDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
@@ -310,24 +294,76 @@
             const pesan = input.value.trim();
             if (pesan !== "" && koneksi && koneksi.open) {
                 const waktu = dapatkanWaktu();
-                tampilkanPesanKeLayar(pesan, 'me', waktu);
+                tampilkanPesanKeLayar(pesan, 'teks', 'me', waktu);
                 koneksi.send({ tipe: 'teks', isi: pesan, waktu: waktu });
                 input.value = '';
             }
         }
 
+        // LAPISAN KEAMANAN 4: Validasi MIME File & Penghancur Malware (Canvas Repack)
         function kirimGambar(event) {
             const file = event.target.files[0];
-            if (file && koneksi && koneksi.open) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const dataGambarBase64 = e.target.result;
-                    const waktu = dapatkanWaktu();
-                    
-                    tampilkanPesanKeLayar(`<img src="${dataGambarBase64}">`, 'me', waktu);
-                    koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
+            
+            if (file) {
+                // 1. Blokir file selain JPG, PNG, WEBP (Blokir SVG yang rawan script & exe/apk)
+                const tipeAman = ['image/jpeg', 'image/png', 'image/webp'];
+                if (!tipeAman.includes(file.type)) {
+                    alert("Demi keamanan, hanya file gambar (JPG, PNG, WEBP) yang diizinkan!");
+                    event.target.value = '';
+                    return;
                 }
-                reader.readAsDataURL(file);
+
+                // 2. Blokir file terlalu besar (mencegah DoS / lag memori)
+                if (file.size > 5 * 1024 * 1024) { // Max 5MB
+                    alert("Ukuran gambar terlalu besar! Maksimal 5MB.");
+                    event.target.value = '';
+                    return;
+                }
+
+                if (koneksi && koneksi.open) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = new Image();
+                        img.onload = function() {
+                            // 3. Canvas Repacking (Otomatis menghancurkan payload malware yang menempel pada data bit gambar)
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const dataGambarBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                            const waktu = dapatkanWaktu();
+                            
+                            tampilkanPesanKeLayar(dataGambarBase64, 'gambar', 'me', waktu);
+                            koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
+                        };
+                        
+                        // Menangani error jika file corrupt atau fake image
+                        img.onerror = function() {
+                            alert("File gambar terindikasi rusak atau tidak valid.");
+                        };
+                        img.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+                }
             }
             event.target.value = ''; 
         }
@@ -335,7 +371,7 @@
         function kirimBuzz() {
             if (koneksi && koneksi.open) {
                 const waktu = dapatkanWaktu();
-                tampilkanPesanKeLayar("<em>💓 Kamu mengirim getaran...</em>", 'me', waktu);
+                tampilkanPesanKeLayar("Kamu mengirim getaran...", 'buzz', 'me', waktu);
                 koneksi.send({ tipe: 'buzz', waktu: waktu });
                 animasiGoyang();
             }
