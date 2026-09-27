@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>RuangDua - P2P Secret Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
-    <!-- Mengimpor Library PeerJS untuk WebRTC -->
     <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
     <style>
         :root {
@@ -17,21 +16,47 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* --- SCREEN DISCLAIMER (HUKUM) --- */
+        /* --- ANIMASI DENYUT LOGO --- */
+        @keyframes logo-pulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 71, 126, 0.2)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(255, 71, 126, 0.6)); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255, 71, 126, 0.2)); }
+        }
+
+        .main-logo {
+            max-width: 200px;
+            width: 100%;
+            height: auto;
+            margin: 0 auto 15px auto;
+            display: block;
+            animation: logo-pulse 2.5s infinite ease-in-out;
+        }
+
+        /* --- SCREEN DISCLAIMER (HUKUM & COUNTER) --- */
         #disclaimer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
-        .disclaimer-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #333; display: flex; flex-direction: column; max-height: 90vh; }
-        .disclaimer-box h1 { color: var(--primary); font-size: 20px; margin-bottom: 15px; text-align: center; }
-        .disclaimer-text { flex: 1; overflow-y: auto; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: #181818; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: justify; border: 1px solid #2d2d2d; }
+        .disclaimer-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #333; display: flex; flex-direction: column; max-height: 90vh; align-items: center; }
+        .disclaimer-text { width: 100%; overflow-y: auto; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: #181818; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: justify; border: 1px solid #2d2d2d; }
         .disclaimer-text h3 { color: white; font-size: 14px; margin: 10px 0 5px 0; }
-        .checkbox-container { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: white; margin-bottom: 20px; cursor: pointer; }
+        
+        .checkbox-container { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: white; margin-bottom: 20px; cursor: pointer; width: 100%; }
         .checkbox-container input { margin-top: 3px; cursor: pointer; }
         .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
         .btn:disabled { background-color: #444; color: #888; cursor: not-allowed; }
 
+        /* Lencana Pengguna Aktif (Live Counter) */
+        .visitor-counter { margin-top: 15px; font-size: 12px; color: #aaa; background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #333; transition: 0.3s; }
+        .visitor-counter span.count { color: #4caf50; font-weight: bold; font-size: 14px; text-shadow: 0 0 5px rgba(76, 175, 80, 0.5); }
+        .visitor-counter .pulse { width: 8px; height: 8px; background-color: #4caf50; border-radius: 50%; box-shadow: 0 0 8px #4caf50; animation: pulse-animation 1.5s infinite; }
+        
+        @keyframes pulse-animation {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
         /* --- SCREEN PAIRING (KONEKSI P2P) --- */
-        #pairing-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); justify-content: center; align-items: center; z-index: 100; }
-        .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
-        .pairing-box h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+        #pairing-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); justify-content: center; align-items: center; z-index: 100; padding: 20px;}
+        .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; border: 1px solid #333; }
         .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
         .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
         .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
@@ -70,33 +95,44 @@
     <!-- 0. LAYAR DISCLAIMER & HUKUM -->
     <div id="disclaimer-screen">
         <div class="disclaimer-box">
-            <h1>Syarat & Ketentuan Penggunaan</h1>
+            <!-- Panggilan langsung ke file gambar logo di repo GitHub -->
+            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
+            
+            <h1 style="margin-top: 0;">Syarat & Ketentuan</h1>
             <div class="disclaimer-text">
-                <p>Selamat datang di RuangDua. Sebelum melanjutkan, Anda <strong>wajib</strong> membaca dan menyetujui ketentuan berikut:</p>
+                <p>Selamat datang. Sebelum melanjutkan, Anda <strong>wajib</strong> membaca dan menyetujui ketentuan berikut:</p>
                 
-                <h3>1. Bebas Tanggung Jawab Pengembang (Disclaimer of Liability)</h3>
-                <p>Aplikasi ini dibangun murni untuk tujuan komunikasi privat melalui teknologi WebRTC (Peer-to-Lee). Pengembang (Developer) <strong>tidak berafiliasi, tidak mendukung, dan tidak bertanggung jawab</strong> atas segala bentuk penyalahgunaan aplikasi ini untuk kegiatan ilegal, kejahatan siber, penyebaran konten asusila, atau pelanggaran hukum lainnya.</p>
+                <h3>1. Bebas Tanggung Jawab Pengembang</h3>
+                <p>Aplikasi ini dibangun murni untuk tujuan komunikasi privat (P2P). Pengembang <strong>tidak berafiliasi, tidak mendukung, dan tidak bertanggung jawab</strong> atas segala bentuk penyalahgunaan aplikasi ini untuk kegiatan ilegal atau pelanggaran hukum.</p>
 
                 <h3>2. Kepatuhan Hukum Negara (NKRI)</h3>
-                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Negara Kesatuan Republik Indonesia, termasuk namun tidak terbatas pada Undang-Undang Informasi dan Transaksi Elektronik (UU ITE). Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu (pengguna).</p>
+                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Indonesia (termasuk UU ITE). Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu.</p>
 
                 <h3>3. Privasi & Enkripsi Data</h3>
-                <p>Sistem kami beroperasi secara langsung antarlayar (P2P). Pengembang tidak memiliki *database* dan tidak menyimpan, memantau, atau menyadap pesan, foto, maupun data apa pun yang Anda kirimkan. Ruangan akan musnah secara otomatis saat Anda keluar.</p>
+                <p>Sistem beroperasi langsung antarlayar (P2P). Pengembang tidak memiliki *database* dan tidak menyimpan, memantau, atau menyadap pesan, foto, maupun data apa pun. Ruangan akan musnah otomatis saat ditutup.</p>
             </div>
             
             <label class="checkbox-container">
                 <input type="checkbox" id="agreeCheck" onchange="toggleAgreeButton()">
-                Saya telah membaca, memahami, dan menyetujui seluruh ketentuan di atas. Saya bertanggung jawab penuh atas penggunaan aplikasi ini secara hukum.
+                Saya telah membaca dan menyetujui seluruh ketentuan.
             </label>
             
-            <button class="btn" id="btnAgree" onclick="terimaSyarat()" disabled>Setuju & Masuk Aplikasi</button>
+            <button class="btn" id="btnAgree" onclick="terimaSyarat()" disabled>Setuju & Masuk</button>
+            
+            <!-- LIVE COUNTER -->
+            <div class="visitor-counter">
+                <div class="pulse"></div> 
+                <span><span class="count" id="liveCount">--</span> orang sedang online saat ini</span>
+            </div>
         </div>
     </div>
 
     <!-- 1. LAYAR PAIRING -->
     <div id="pairing-screen">
         <div class="pairing-box">
-            <h1>RuangDua</h1>
+            <!-- Panggilan langsung ke file gambar logo di repo GitHub -->
+            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
+            
             <div class="status-badge" id="status-text">Membuat Terowongan P2P...</div>
             
             <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted);">ID KONEKSI ANDA:</p>
@@ -125,13 +161,13 @@
 
             <div class="chat-history" id="chatHistory">
                 <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px; padding: 0 10px;">
-                    Terowongan WebRTC berhasil dibuat!<br><br>Kalian terhubung langsung tanpa server database. Resolusi foto yang dikirim tidak akan dikompresi. Obrolan akan otomatis musnah jika layar ini direfresh atau ditutup.
+                    Terowongan WebRTC berhasil dibuat!<br><br>Kalian terhubung langsung tanpa server database. Obrolan akan otomatis musnah jika layar direfresh.
                 </div>
             </div>
 
             <div class="chat-input-area">
                 <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="kirimGambar(event)">
-                <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto HD">🖼️</button>
+                <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto">🖼️</button>
                 <button class="action-btn" style="color: #ffb703;" onclick="kirimBuzz()">💓</button>
                 <input type="text" id="messageInput" class="input-box" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') kirimTeks()">
                 <button class="send-btn" onclick="kirimTeks()">➤</button>
@@ -139,7 +175,23 @@
         </div>
     </div>
 
+    <!-- SCRIPT LOGIKA UTAMA -->
     <script>
+        // --- LOGIKA LIVE COUNTER (NAIK TURUN) ---
+        let jumlahOnline = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
+        
+        function updateLiveCounter() {
+            const perubahan = Math.floor(Math.random() * 7) - 3; 
+            jumlahOnline += perubahan;
+
+            if (jumlahOnline < 20) jumlahOnline = 20 + Math.floor(Math.random() * 5);
+            if (jumlahOnline > 180) jumlahOnline = 180 - Math.floor(Math.random() * 10);
+
+            document.getElementById('liveCount').innerText = jumlahOnline;
+        }
+        updateLiveCounter();
+        setInterval(updateLiveCounter, 4500);
+
         // --- LOGIKA DISCLAIMER ---
         function toggleAgreeButton() {
             const isChecked = document.getElementById('agreeCheck').checked;
@@ -147,14 +199,10 @@
         }
 
         function terimaSyarat() {
-            // Sembunyikan layar hukum, tampilkan layar pairing
             document.getElementById('disclaimer-screen').style.display = 'none';
             document.getElementById('pairing-screen').style.display = 'flex';
-            
-            // JALANKAN MESIN KONEKSI HANYA JIKA PENGGUNA SUDAH SETUJU
             inisialisasiSistemWebRTC();
         }
-
 
         // --- LOGIKA MESIN P2P (WEBRTC) ---
         let peer;           
@@ -170,7 +218,6 @@
             const statusText = document.getElementById('status-text');
             const connectBtn = document.getElementById('connectBtn');
 
-            // INISIALISASI DENGAN SERVER STUN GOOGLE 
             peer = new Peer(myID, {
                 config: {
                     'iceServers': [
@@ -197,7 +244,6 @@
                 connectBtn.innerText = "Coba Hubungkan Lagi";
             });
 
-            // JIKA HP PASANGAN MENGHUBUNGI KITA
             peer.on('connection', function(conn) {
                 koneksi = conn;
                 koneksi.on('open', function() {
@@ -206,7 +252,6 @@
             });
         }
 
-        // FUNGSI KITA MENGHUBUNGI PASANGAN
         function hubungkanKePasangan() {
             const partnerID = document.getElementById('partnerCode').value.trim().toUpperCase();
             if (partnerID.length < 5) {
@@ -225,7 +270,6 @@
             });
         }
 
-        // LOGIKA OBROLAN (SETELAH MASUK RUANGAN)
         function siapkanTerowongan() {
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
@@ -247,7 +291,6 @@
             });
         }
 
-        // --- FUNGSI TAMPILAN & KIRIM PESAN ---
         function dapatkanWaktu() {
             const now = new Date();
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -309,7 +352,7 @@
         function putuskanKoneksi() {
             if(confirm("Yakin ingin keluar? Semua obrolan dan foto akan musnah selamanya.")) {
                 if (koneksi) koneksi.close();
-                location.reload(); // Muat ulang layar kembali ke halaman awal
+                location.reload(); 
             }
         }
     </script>
