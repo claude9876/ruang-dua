@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RuangDua - P2P Secret Room</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Mengimpor Library PeerJS untuk WebRTC -->
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #121212; --panel-bg: #1e1e1e; --primary: #ff477e;
+            --text-main: #f5f5f5; --text-muted: #a0a0a0;
+            --chat-bubble-me: #ff477e; --chat-bubble-you: #2d2d2d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- SCREEN PAIRING (KONEKSI P2P) --- */
+        #pairing-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
+        .pairing-box h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
+        .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
+        .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin:bottom: 10px; color: white; user-select: all; }
+        .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
+        .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .btn:disabled { background-color: #555; cursor: not-allowed; }
+
+        /* --- LAYAR APLIKASI UTAMA --- */
+        #app-screen { display: none; width: 100%; height: 100%; }
+        .sidebar { width: 80px; background-color: var(--panel-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 1px solid #333; z-index: 10; }
+        .nav-item { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { background-color: rgba(255, 71, 126, 0.2); color: var(--primary); }
+
+        .content-area { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .header { padding: 15px 20px; background-color: var(--panel-bg); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        
+        .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+        .message.you { background-color: var(--chat-bubble-you); align-self: flex-start; border-bottom-left-radius: 4px; }
+        .message.me { background-color: var(--chat-bubble-me); align-self: flex-end; border-bottom-right-radius: 4px; }
+        .message img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
+        .time { font-size: 10px; color: #ccc; display: block; margin-top: 5px; text-align: right; }
+
+        .chat-input-area { padding: 15px; background-color: var(--panel-bg); display: flex; gap: 8px; align-items: center; border-top: 1px solid #333; }
+        .action-btn { background: none; border: none; font-size: 22px; padding: 5px; color: var(--text-muted); cursor: pointer; }
+        .input-box { flex: 1; background-color: #2d2d2d; border: none; border-radius: 20px; padding: 12px 15px; color: white; outline: none; }
+        .send-btn { background-color: var(--primary); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; font-weight: bold; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            #app-screen { flex-direction: column; }
+            .sidebar { width: 100%; height: 65px; flex-direction: row; justify-content: space-around; padding: 0; border-right: none; border-top: 1px solid #333; order: 3; }
+            .content-area { order: 2; height: calc(100vh - 65px); }
+            .message { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LAYAR PAIRING -->
+    <div id="pairing-screen">
+        <div class="pairing-box">
+            <h1>RuangDua</h1>
+            <div class="status-badge" id="status-text">Membuat Terowongan P2P...</div>
+            
+            <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted);">ID KONEKSI ANDA:</p>
+            <div class="code-display" id="myCode">...</div>
+            <p style="font-size: 11px; margin-bottom: 20px; color: #777;">Kirim ID ini ke pasangan Anda, ATAU masukkan ID pasangan Anda di bawah ini:</p>
+
+            <input type="text" id="partnerCode" class="input-code" placeholder="MASUKKAN ID PASANGAN" maxlength="6">
+            <button class="btn" id="connectBtn" onclick="hubungkanKePasangan()" disabled>Hubungkan Kamera/Chat</button>
+        </div>
+    </div>
+
+    <!-- LAYAR APLIKASI UTAMA -->
+    <div id="app-screen">
+        <div class="sidebar">
+            <div class="nav-item active">💬</div>
+            <div class="nav-item" onclick="putuskanKoneksi()">🚪</div>
+        </div>
+
+        <div class="content-area">
+            <div class="header">
+                <div>
+                    <h2 style="font-size: 16px;">Ruang Kita ❤️</h2>
+                    <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (P2P)</span>
+                </div>
+            </div>
+
+            <div class="chat-history" id="chatHistory">
+                <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px;">
+                    Terowongan WebRTC berhasil dibuat.<br>Kalian berdua terhubung langsung tanpa server database. Obrolan akan hilang jika layar ini ditutup.
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="kirimGambar(event)">
+                <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto HD">🖼️</button>
+                <button class="action-btn" style="color: #ffb703;" onclick="kirimBuzz()">💓</button>
+                <input type="text" id="messageInput" class="input-box" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') kirimTeks()">
+                <button class="send-btn" onclick="kirimTeks()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let peer;           // Mesin koneksi kita
+        let koneksi;        // Terowongan obrolan ke pasangan
+
+        // Membuat ID Acak 5 Karakter (Contoh: X8A9P)
+        function buatIDPendek() {
+            return Math.random().toString(36).substring(2, 7).toUpperCase();
+        }
+
+        const myID = buatIDPendek();
+        const displayCode = document.getElementById('myCode');
+        const statusText = document.getElementById('status-text');
+        const connectBtn = document.getElementById('connectBtn');
+
+        // 1. INISIALISASI PEERJS (MEMBANGUN IDENTITAS HP)
+        peer = new Peer(myID);
+
+        peer.on('open', function(id) {
+            displayCode.innerText = id;
+            statusText.innerText = "Menunggu Pasangan...";
+            statusText.style.color = "#4caf50";
+            statusText.style.background = "rgba(76,175,80,0.1)";
+            connectBtn.disabled = false; // Tombol bisa diklik
+        });
+
+        peer.on('error', function(err) {
+            alert("Kesalahan koneksi WebRTC: " + err);
+        });
+
+        // 2. JIKA ADA YANG MENGHUBUNGI KITA
+        peer.on('connection', function(conn) {
+            koneksi = conn;
+            siapkanTerowongan();
+        });
+
+        // 3. JIKA KITA YANG MENGHUBUNGI PASANGAN
+        function hubungkanKePasangan() {
+            const partnerID = document.getElementById('partnerCode').value.trim().toUpperCase();
+            if (partnerID.length < 5) {
+                alert("ID Pasangan tidak valid!"); return;
+            }
+            
+            statusText.innerText = "Menyambungkan...";
+            connectBtn.innerText = "Loading...";
+            
+            koneksi = peer.connect(partnerID);
+            koneksi.on('open', function() {
+                siapkanTerowongan();
+            });
+        }
+
+        // 4. MEMASUKI RUANGAN SETELAH TERHUBUNG
+        function siapkanTerowongan() {
+            document.getElementById('pairing-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'flex';
+
+            // Mendengarkan pesan yang datang dari pasangan
+            koneksi.on('data', function(data) {
+                if (data.tipe === 'teks') {
+                    tampilkanPesanKeLayar(data.isi, 'you', data.waktu);
+                } else if (data.tipe === 'gambar') {
+                    tampilkanPesanKeLayar(`<img src="${data.isi}" alt="Foto dari pasangan">`, 'you', data.waktu);
+                } else if (data.tipe === 'buzz') {
+                    tampilkanPesanKeLayar("<em>💓 Pasangan mengirim getaran...</em>", 'you', data.waktu);
+                    animasiGoyang();
+                }
+            });
+
+            // Jika pasangan tiba-tiba keluar/menutup browser
+            koneksi.on('close', function() {
+                alert("Koneksi terputus! Pasanganmu telah keluar dari ruangan.");
+                location.reload(); // Paksa muat ulang ke halaman awal
+            });
+        }
+
+        // --- FUNGSI MENGIRIM PESAN ---
+        function dapatkanWaktu() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+
+        function tampilkanPesanKeLayar(htmlContent, senderClass, time) {
+            const chatHistory = document.getElementById('chatHistory');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${senderClass}`;
+            msgDiv.innerHTML = `${htmlContent} <span class="time">${time}</span>`;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Kirim Teks
+        function kirimTeks() {
+            const input = document.getElementById('messageInput');
+            const pesan = input.value.trim();
+            if (pesan !== "" && koneksi && koneksi.open) {
+                const waktu = dapatkanWaktu();
+                // 1. Tampilkan di layar sendiri
+                tampilkanPesanKeLayar(pesan, 'me', waktu);
+                
+                // 2. Kirim menyeberangi internet ke HP Pasangan
+                koneksi.send({ tipe: 'teks', isi: pesan, waktu: waktu });
+                input.value = '';
+            }
+        }
+
+        // Kirim Gambar HD
+        function kirimGambar(event) {
+            const file = event.target.files[0];
+            if (file && koneksi && koneksi.open) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataGambarBase64 = e.target.result;
+                    const waktu = dapatkanWaktu();
+                    
+                    // Tampilkan di layar sendiri
+                    tampilkanPesanKeLayar(`<img src="${dataGambarBase64}">`, 'me', waktu);
+                    
+                    // Kirim ukuran aslinya ke pasangan (akan memakan waktu jika ukuran sangat besar)
+                    koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
+                }
+                reader.readAsDataURL(file);
+            }
+            event.target.value = ''; 
+        }
+
+        // Kirim Buzz / Getaran
+        function kirimBuzz() {
+            if (koneksi && koneksi.open) {
+                const waktu = dapatkanWaktu();
+                tampilkanPesanKeLayar("<em>💓 Kamu mengirim getaran...</em>", 'me', waktu);
+                koneksi.send({ tipe: 'buzz', waktu: waktu });
+                animasiGoyang();
+            }
+        }
+
+        function animasiGoyang() {
+            const app = document.body;
+            app.style.transform = "translateX(5px)";
+            setTimeout(() => app.style.transform = "translateX(-5px)", 50);
+            setTimeout(() => app.style.transform = "translateX(5px)", 100);
+            setTimeout(() => app.style.transform = "translateX(0)", 150);
+        }
+
+        function putuskanKoneksi() {
+            if(confirm("Keluar dari ruangan? Semua riwayat obrolan tidak akan tersimpan.")) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
