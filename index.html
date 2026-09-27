@@ -17,15 +17,24 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
+        /* --- SCREEN DISCLAIMER (HUKUM) --- */
+        #disclaimer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
+        .disclaimer-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #333; display: flex; flex-direction: column; max-height: 90vh; }
+        .disclaimer-box h1 { color: var(--primary); font-size: 20px; margin-bottom: 15px; text-align: center; }
+        .disclaimer-text { flex: 1; overflow-y: auto; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: #181818; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: justify; border: 1px solid #2d2d2d; }
+        .disclaimer-text h3 { color: white; font-size: 14px; margin: 10px 0 5px 0; }
+        .checkbox-container { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: white; margin-bottom: 20px; cursor: pointer; }
+        .checkbox-container input { margin-top: 3px; cursor: pointer; }
+        .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
+        .btn:disabled { background-color: #444; color: #888; cursor: not-allowed; }
+
         /* --- SCREEN PAIRING (KONEKSI P2P) --- */
-        #pairing-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        #pairing-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); justify-content: center; align-items: center; z-index: 100; }
         .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; border: 1px solid #333; }
         .pairing-box h1 { color: var(--primary); font-size: 24px; margin-bottom: 5px; }
         .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
         .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
         .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
-        .btn { width: 100%; background-color: var(--primary); border: none; padding: 15px; border-radius: 12px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; margin-bottom: 10px; }
-        .btn:disabled { background-color: #555; cursor: not-allowed; }
 
         /* --- LAYAR APLIKASI UTAMA --- */
         #app-screen { display: none; width: 100%; height: 100%; }
@@ -58,7 +67,33 @@
 </head>
 <body>
 
-    <!-- LAYAR PAIRING -->
+    <!-- 0. LAYAR DISCLAIMER & HUKUM -->
+    <div id="disclaimer-screen">
+        <div class="disclaimer-box">
+            <h1>Syarat & Ketentuan Penggunaan</h1>
+            <div class="disclaimer-text">
+                <p>Selamat datang di RuangDua. Sebelum melanjutkan, Anda <strong>wajib</strong> membaca dan menyetujui ketentuan berikut:</p>
+                
+                <h3>1. Bebas Tanggung Jawab Pengembang (Disclaimer of Liability)</h3>
+                <p>Aplikasi ini dibangun murni untuk tujuan komunikasi privat melalui teknologi WebRTC (Peer-to-Lee). Pengembang (Developer) <strong>tidak berafiliasi, tidak mendukung, dan tidak bertanggung jawab</strong> atas segala bentuk penyalahgunaan aplikasi ini untuk kegiatan ilegal, kejahatan siber, penyebaran konten asusila, atau pelanggaran hukum lainnya.</p>
+
+                <h3>2. Kepatuhan Hukum Negara (NKRI)</h3>
+                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Negara Kesatuan Republik Indonesia, termasuk namun tidak terbatas pada Undang-Undang Informasi dan Transaksi Elektronik (UU ITE). Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu (pengguna).</p>
+
+                <h3>3. Privasi & Enkripsi Data</h3>
+                <p>Sistem kami beroperasi secara langsung antarlayar (P2P). Pengembang tidak memiliki *database* dan tidak menyimpan, memantau, atau menyadap pesan, foto, maupun data apa pun yang Anda kirimkan. Ruangan akan musnah secara otomatis saat Anda keluar.</p>
+            </div>
+            
+            <label class="checkbox-container">
+                <input type="checkbox" id="agreeCheck" onchange="toggleAgreeButton()">
+                Saya telah membaca, memahami, dan menyetujui seluruh ketentuan di atas. Saya bertanggung jawab penuh atas penggunaan aplikasi ini secara hukum.
+            </label>
+            
+            <button class="btn" id="btnAgree" onclick="terimaSyarat()" disabled>Setuju & Masuk Aplikasi</button>
+        </div>
+    </div>
+
+    <!-- 1. LAYAR PAIRING -->
     <div id="pairing-screen">
         <div class="pairing-box">
             <h1>RuangDua</h1>
@@ -73,7 +108,7 @@
         </div>
     </div>
 
-    <!-- LAYAR APLIKASI UTAMA -->
+    <!-- 2. LAYAR APLIKASI UTAMA -->
     <div id="app-screen">
         <div class="sidebar">
             <div class="nav-item active">💬</div>
@@ -105,6 +140,23 @@
     </div>
 
     <script>
+        // --- LOGIKA DISCLAIMER ---
+        function toggleAgreeButton() {
+            const isChecked = document.getElementById('agreeCheck').checked;
+            document.getElementById('btnAgree').disabled = !isChecked;
+        }
+
+        function terimaSyarat() {
+            // Sembunyikan layar hukum, tampilkan layar pairing
+            document.getElementById('disclaimer-screen').style.display = 'none';
+            document.getElementById('pairing-screen').style.display = 'flex';
+            
+            // JALANKAN MESIN KONEKSI HANYA JIKA PENGGUNA SUDAH SETUJU
+            inisialisasiSistemWebRTC();
+        }
+
+
+        // --- LOGIKA MESIN P2P (WEBRTC) ---
         let peer;           
         let koneksi;        
 
@@ -112,69 +164,68 @@
             return Math.random().toString(36).substring(2, 7).toUpperCase();
         }
 
-        const myID = buatIDPendek();
-        const displayCode = document.getElementById('myCode');
-        const statusText = document.getElementById('status-text');
-        const connectBtn = document.getElementById('connectBtn');
+        function inisialisasiSistemWebRTC() {
+            const myID = buatIDPendek();
+            const displayCode = document.getElementById('myCode');
+            const statusText = document.getElementById('status-text');
+            const connectBtn = document.getElementById('connectBtn');
 
-        // 1. INISIALISASI DENGAN SERVER STUN GOOGLE (MENEMBUS BLOKIR PROVIDER)
-        peer = new Peer(myID, {
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' }
-                ]
-            }
-        });
-
-        peer.on('open', function(id) {
-            displayCode.innerText = id;
-            statusText.innerText = "Menunggu Pasangan...";
-            statusText.style.color = "#4caf50";
-            statusText.style.background = "rgba(76,175,80,0.1)";
-            connectBtn.disabled = false; 
-        });
-
-        peer.on('error', function(err) {
-            alert("Kesalahan koneksi: " + err);
-            statusText.innerText = "Koneksi Gagal/Terputus";
-            statusText.style.color = "#ff4747";
-            connectBtn.disabled = false;
-            connectBtn.innerText = "Coba Hubungkan Lagi";
-        });
-
-        // 2. JIKA HP PASANGAN MENGHUBUNGI KITA
-        peer.on('connection', function(conn) {
-            koneksi = conn;
-            
-            // PERBAIKAN: Hanya masuk ke ruang obrolan JIKA terowongan sudah 100% terbuka
-            koneksi.on('open', function() {
-                siapkanTerowongan();
+            // INISIALISASI DENGAN SERVER STUN GOOGLE 
+            peer = new Peer(myID, {
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                }
             });
-        });
 
-        // 3. JIKA KITA MENGHUBUNGI HP PASANGAN
+            peer.on('open', function(id) {
+                displayCode.innerText = id;
+                statusText.innerText = "Menunggu Pasangan...";
+                statusText.style.color = "#4caf50";
+                statusText.style.background = "rgba(76,175,80,0.1)";
+                connectBtn.disabled = false; 
+            });
+
+            peer.on('error', function(err) {
+                alert("Kesalahan koneksi: " + err);
+                statusText.innerText = "Koneksi Gagal/Terputus";
+                statusText.style.color = "#ff4747";
+                connectBtn.disabled = false;
+                connectBtn.innerText = "Coba Hubungkan Lagi";
+            });
+
+            // JIKA HP PASANGAN MENGHUBUNGI KITA
+            peer.on('connection', function(conn) {
+                koneksi = conn;
+                koneksi.on('open', function() {
+                    siapkanTerowongan();
+                });
+            });
+        }
+
+        // FUNGSI KITA MENGHUBUNGI PASANGAN
         function hubungkanKePasangan() {
             const partnerID = document.getElementById('partnerCode').value.trim().toUpperCase();
             if (partnerID.length < 5) {
                 alert("Masukkan ID Pasangan dengan benar!"); return;
             }
             
-            statusText.innerText = "Menyambungkan...";
-            connectBtn.innerText = "Loading...";
-            connectBtn.disabled = true; // Kunci tombol saat loading
+            document.getElementById('status-text').innerText = "Menyambungkan...";
+            const btn = document.getElementById('connectBtn');
+            btn.innerText = "Loading...";
+            btn.disabled = true; 
             
-            // Perintah membangun terowongan data
             koneksi = peer.connect(partnerID, { reliable: true });
             
-            // PERBAIKAN: Masuk ke ruangan jika koneksi sukses ditembus
             koneksi.on('open', function() {
                 siapkanTerowongan();
             });
         }
 
-        // 4. LOGIKA OBROLAN (SETELAH MASUK RUANGAN)
+        // LOGIKA OBROLAN (SETELAH MASUK RUANGAN)
         function siapkanTerowongan() {
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
@@ -196,6 +247,7 @@
             });
         }
 
+        // --- FUNGSI TAMPILAN & KIRIM PESAN ---
         function dapatkanWaktu() {
             const now = new Date();
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -230,8 +282,6 @@
                     const waktu = dapatkanWaktu();
                     
                     tampilkanPesanKeLayar(`<img src="${dataGambarBase64}">`, 'me', waktu);
-                    
-                    // Karena P2P, file asli/resolusi tinggi bisa dikirim tanpa kompresi
                     koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
                 }
                 reader.readAsDataURL(file);
@@ -259,7 +309,7 @@
         function putuskanKoneksi() {
             if(confirm("Yakin ingin keluar? Semua obrolan dan foto akan musnah selamanya.")) {
                 if (koneksi) koneksi.close();
-                location.reload();
+                location.reload(); // Muat ulang layar kembali ke halaman awal
             }
         }
     </script>
