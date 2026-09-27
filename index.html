@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- LAPISAN KEAMANAN 1: Content Security Policy (Mencegah Eksekusi Script Eksternal) -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src *;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https://assets.mixkit.co; connect-src *;">
     
     <title>RuangDua - P2P Secret Room</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
@@ -44,8 +43,8 @@
         #pairing-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); justify-content: center; align-items: center; z-index: 100; padding: 20px;}
         .pairing-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; border: 1px solid #333; }
         .status-badge { display: inline-block; background: rgba(255,183,3,0.1); color: #ffb703; padding: 4px 10px; border-radius: 20px; font-size: 11px; margin-bottom: 20px; border: 1px solid rgba(255,183,3,0.3); }
-        .code-display { font-size: 36px; font-weight: bold; letter-spacing: 5px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
-        .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 18px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 2px; text-transform: uppercase; }
+        .code-display { font-size: 40px; font-weight: bold; letter-spacing: 6px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
+        .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 20px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 4px; text-transform: uppercase; }
 
         #app-screen { display: none; width: 100%; height: 100%; }
         .sidebar { width: 80px; background-color: var(--panel-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 1px solid #333; z-index: 10; }
@@ -76,18 +75,29 @@
     </style>
 </head>
 <body>
+    <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+
     <div id="disclaimer-screen">
         <div class="disclaimer-box">
-            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
+            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo" onerror="this.style.display='none'">
             <h1 style="margin-top: 0;">Syarat & Ketentuan</h1>
             <div class="disclaimer-text">
-                <p>Selamat datang. Sebelum melanjutkan, Anda <strong>wajib</strong> membaca dan menyetujui ketentuan berikut:</p>
-                <h3>1. Bebas Tanggung Jawab Pengembang</h3>
-                <p>Aplikasi ini dibangun murni untuk tujuan komunikasi privat (P2P). Pengembang <strong>tidak berafiliasi, tidak mendukung, dan tidak bertanggung jawab</strong> atas segala bentuk penyalahgunaan aplikasi ini untuk kegiatan ilegal atau pelanggaran hukum.</p>
-                <h3>2. Kepatuhan Hukum Negara (NKRI)</h3>
-                <p>Pengguna diwajibkan untuk mematuhi seluruh peraturan perundang-undangan yang berlaku di Indonesia. Segala bentuk pertukaran data sepenuhnya menjadi tanggung jawab masing-masing individu.</p>
-                <h3>3. Privasi & Enkripsi Data</h3>
-                <p>Sistem beroperasi langsung antarlayar (P2P). Pengembang tidak memiliki *database* dan tidak menyimpan, memantau, atau menyadap pesan, foto, maupun data apa pun. Ruangan akan musnah otomatis saat ditutup.</p>
+                <p>Selamat datang. Sebelum melanjutkan, Anda <strong>WAJIB</strong> membaca dan menyetujui secara hukum ketentuan berikut:</p>
+                
+                <h3>1. Batas Usia Dewasa (18+)</h3>
+                <p>Dengan menekan tombol setuju, Anda menyatakan secara sadar bahwa Anda berusia <strong>minimal 18 tahun</strong>. Penggunaan oleh anak di bawah umur dilarang keras.</p>
+
+                <h3>2. Larangan Konten Ilegal (UU ITE)</h3>
+                <p>Aplikasi ini adalah saluran komunikasi netral. Anda <strong>dilarang keras</strong> menggunakannya untuk aktivitas ilegal menurut hukum NKRI, termasuk namun tidak terbatas pada: penyebaran pornografi/CSAM, judi online, penipuan, prostitusi, perdagangan barang terlarang, ancaman, dan ujaran kebencian (SARA).</p>
+
+                <h3>3. Zero-Knowledge & Ketiadaan Log</h3>
+                <p>Aplikasi ini beroperasi murni secara <em>Peer-to-Peer</em> (P2P) antar perangkat pengguna. Pengembang <strong>tidak memiliki server database, tidak menyadap, tidak menyimpan, dan tidak bisa melihat</strong> isi pesan atau foto Anda. Oleh karena itu, pengembang tidak dapat dan tidak akan menyediakan log data apa pun kepada pihak berwenang jika terjadi sengketa hukum.</p>
+
+                <h3>4. UU Perlindungan Data Pribadi (PDP)</h3>
+                <p>Sistem ini tidak mengumpulkan IP Address, nama, atau data pribadi pengguna ke dalam server pengembang. Segala risiko kebocoran data yang diakibatkan oleh tangkapan layar (screenshot) atau kelalaian pengguna dengan pasangannya adalah tanggung jawab mutlak pengguna.</p>
+
+                <h3>5. Bebas Tanggung Jawab Mutlak</h3>
+                <p>Pengembang dilepaskan dari segala tuntutan hukum perdata maupun pidana atas penyalahgunaan platform ini. Segala aktivitas di dalam ruang obrolan menjadi tanggung jawab pribadi masing-masing individu di mata hukum.</p>
             </div>
             <label class="checkbox-container">
                 <input type="checkbox" id="agreeCheck" onchange="toggleAgreeButton()">
@@ -103,12 +113,13 @@
 
     <div id="pairing-screen">
         <div class="pairing-box">
-            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo">
+            <img src="1000171747.png" alt="Logo RuangDua" class="main-logo" onerror="this.style.display='none'">
             <div class="status-badge" id="status-text">Membuat Terowongan P2P...</div>
             <p style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted);">ID KONEKSI ANDA:</p>
             <div class="code-display" id="myCode">...</div>
             <p style="font-size: 11px; margin-bottom: 20px; color: #777;">Kirim ID ini ke pasangan Anda, ATAU masukkan ID pasangan Anda di bawah ini:</p>
-            <input type="text" id="partnerCode" class="input-code" placeholder="MASUKKAN ID PASANGAN" maxlength="6">
+            
+            <input type="text" id="partnerCode" class="input-code" placeholder="MASUKKAN ID (7 HURUF)" maxlength="7">
             <button class="btn" id="connectBtn" onclick="hubungkanKePasangan()" disabled>Hubungkan Obrolan</button>
         </div>
     </div>
@@ -141,7 +152,6 @@
     </div>
 
     <script>
-        // Gimmick Live Counter
         let jumlahOnline = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
         function updateLiveCounter() {
             const perubahan = Math.floor(Math.random() * 7) - 3; 
@@ -163,10 +173,10 @@
             inisialisasiSistemWebRTC();
         }
 
-        let peer, koneksi;        
+        let peer, koneksi, pingInterval;        
 
         function buatIDPendek() {
-            return Math.random().toString(36).substring(2, 7).toUpperCase();
+            return Math.random().toString(36).substring(2, 9).toUpperCase();
         }
 
         function inisialisasiSistemWebRTC() {
@@ -180,7 +190,8 @@
                     'iceServers': [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
+                        { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
+                        { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" }
                     ]
                 }
             });
@@ -209,8 +220,9 @@
 
         function hubungkanKePasangan() {
             const partnerID = document.getElementById('partnerCode').value.trim().toUpperCase();
-            if (partnerID.length < 5) {
-                alert("Masukkan ID Pasangan dengan benar!"); return;
+            
+            if (partnerID.length < 7) {
+                alert("ID Pasangan harus terdiri dari 7 karakter!"); return;
             }
             
             document.getElementById('status-text').innerText = "Menyambungkan...";
@@ -222,22 +234,27 @@
             koneksi.on('open', siapkanTerowongan);
         }
 
-        // LAPISAN KEAMANAN 2: Validasi Payload
         function siapkanTerowongan() {
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
 
+            pingInterval = setInterval(() => {
+                if (koneksi && koneksi.open) {
+                    koneksi.send({ tipe: 'ping' });
+                }
+            }, 15000);
+
             koneksi.on('data', function(data) {
-                // Pastikan data adalah object (mencegah payload error/crash)
                 if (typeof data !== 'object' || data === null) return;
+                if (data.tipe === 'ping') return;
                 
-                // Mencegah manipulasi waktu dari sisi hacker
                 const waktu = (typeof data.waktu === 'string' && data.waktu.length <= 5) ? data.waktu : dapatkanWaktu();
+
+                document.getElementById('notifSound').play().catch(e => { });
 
                 if (data.tipe === 'teks' && typeof data.isi === 'string') {
                     tampilkanPesanKeLayar(data.isi, 'teks', 'you', waktu);
                 } else if (data.tipe === 'gambar' && typeof data.isi === 'string') {
-                    // Validasi header Base64 hanya untuk format gambar yang aman
                     if (data.isi.startsWith('data:image/jpeg') || data.isi.startsWith('data:image/png') || data.isi.startsWith('data:image/webp')) {
                         tampilkanPesanKeLayar(data.isi, 'gambar', 'you', waktu);
                     }
@@ -248,6 +265,7 @@
             });
 
             koneksi.on('close', function() {
+                clearInterval(pingInterval);
                 alert("Koneksi terputus! Pasanganmu keluar dari ruangan atau sinyalnya hilang.");
                 location.reload(); 
             });
@@ -258,14 +276,11 @@
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
         }
 
-        // LAPISAN KEAMANAN 3: DOM Aman (100% Bebas XSS)
-        // Kita gunakan createTextNode/createElement bukan innerHTML!
         function tampilkanPesanKeLayar(konten, tipe, senderClass, time) {
             const chatHistory = document.getElementById('chatHistory');
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${senderClass}`;
 
-            // Isi pesan disesuaikan dengan tipe untuk mencegah render HTML berbahaya
             if (tipe === 'teks') {
                 const teksNode = document.createTextNode(konten);
                 msgDiv.appendChild(teksNode);
@@ -279,7 +294,6 @@
                 msgDiv.appendChild(buzzNode);
             }
 
-            // Tambahkan timestamp
             const timeSpan = document.createElement('span');
             timeSpan.className = 'time';
             timeSpan.textContent = time;
@@ -300,12 +314,10 @@
             }
         }
 
-        // LAPISAN KEAMANAN 4: Validasi MIME File & Penghancur Malware (Canvas Repack)
         function kirimGambar(event) {
             const file = event.target.files[0];
             
             if (file) {
-                // 1. Blokir file selain JPG, PNG, WEBP (Blokir SVG yang rawan script & exe/apk)
                 const tipeAman = ['image/jpeg', 'image/png', 'image/webp'];
                 if (!tipeAman.includes(file.type)) {
                     alert("Demi keamanan, hanya file gambar (JPG, PNG, WEBP) yang diizinkan!");
@@ -313,8 +325,7 @@
                     return;
                 }
 
-                // 2. Blokir file terlalu besar (mencegah DoS / lag memori)
-                if (file.size > 5 * 1024 * 1024) { // Max 5MB
+                if (file.size > 5 * 1024 * 1024) { 
                     alert("Ukuran gambar terlalu besar! Maksimal 5MB.");
                     event.target.value = '';
                     return;
@@ -325,7 +336,6 @@
                     reader.onload = function(e) {
                         const img = new Image();
                         img.onload = function() {
-                            // 3. Canvas Repacking (Otomatis menghancurkan payload malware yang menempel pada data bit gambar)
                             const canvas = document.createElement('canvas');
                             const MAX_WIDTH = 800;
                             const MAX_HEIGHT = 800;
@@ -356,7 +366,6 @@
                             koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
                         };
                         
-                        // Menangani error jika file corrupt atau fake image
                         img.onerror = function() {
                             alert("File gambar terindikasi rusak atau tidak valid.");
                         };
