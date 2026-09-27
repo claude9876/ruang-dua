@@ -55,6 +55,13 @@
         .header { padding: 15px 20px; background-color: var(--panel-bg); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .chat-history { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
+        /* Animasi Typing Indicator */
+        .typing-indicator { display: none; font-size: 12px; color: var(--primary); padding: 0 20px 10px 20px; font-style: italic; }
+        .typing-indicator span { animation: blink 1.4s infinite both; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
+
         .message { max-width: 75%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
         .message.you { background-color: var(--chat-bubble-you); align-self: flex-start; border-bottom-left-radius: 4px; }
         .message.me { background-color: var(--chat-bubble-me); align-self: flex-end; border-bottom-right-radius: 4px; }
@@ -65,6 +72,12 @@
         .action-btn { background: none; border: none; font-size: 22px; padding: 5px; color: var(--text-muted); cursor: pointer; }
         .input-box { flex: 1; background-color: #2d2d2d; border: none; border-radius: 20px; padding: 12px 15px; color: white; outline: none; }
         .send-btn { background-color: var(--primary); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; font-weight: bold; cursor: pointer; }
+
+        /* Tampilan Panic Screen (Google Palsu) */
+        #panic-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif; }
+        .fake-google-logo { font-size: 80px; font-weight: bold; margin-bottom: 25px; letter-spacing: -3px; }
+        .fake-search-bar { width: 90%; max-width: 580px; padding: 14px 20px; border-radius: 24px; border: 1px solid #dfe1e5; box-shadow: 0 1px 6px rgba(32,33,36,.28); display: flex; align-items: center; }
+        .fake-search-bar input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; }
 
         @media (max-width: 768px) {
             #app-screen { flex-direction: column; }
@@ -77,25 +90,31 @@
 <body>
     <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
 
+    <!-- PANIC SCREEN (Google Clone) -->
+    <div id="panic-screen">
+        <div class="fake-google-logo">
+            <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span>
+        </div>
+        <div class="fake-search-bar">
+            <input type="text" placeholder="Telusuri Google atau ketik URL">
+        </div>
+        <p style="margin-top: 30px; font-size: 12px; color: #70757a;">Tekan ESC lagi untuk kembali</p>
+    </div>
+
     <div id="disclaimer-screen">
         <div class="disclaimer-box">
             <img src="1000171747.png" alt="Logo RuangDua" class="main-logo" onerror="this.style.display='none'">
             <h1 style="margin-top: 0;">Syarat & Ketentuan</h1>
             <div class="disclaimer-text">
                 <p>Selamat datang. Sebelum melanjutkan, Anda <strong>WAJIB</strong> membaca dan menyetujui secara hukum ketentuan berikut:</p>
-                
                 <h3>1. Batas Usia Dewasa (18+)</h3>
                 <p>Dengan menekan tombol setuju, Anda menyatakan secara sadar bahwa Anda berusia <strong>minimal 18 tahun</strong>. Penggunaan oleh anak di bawah umur dilarang keras.</p>
-
                 <h3>2. Larangan Konten Ilegal (UU ITE)</h3>
                 <p>Aplikasi ini adalah saluran komunikasi netral. Anda <strong>dilarang keras</strong> menggunakannya untuk aktivitas ilegal menurut hukum NKRI, termasuk namun tidak terbatas pada: penyebaran pornografi/CSAM, judi online, penipuan, prostitusi, perdagangan barang terlarang, ancaman, dan ujaran kebencian (SARA).</p>
-
                 <h3>3. Zero-Knowledge & Ketiadaan Log</h3>
                 <p>Aplikasi ini beroperasi murni secara <em>Peer-to-Peer</em> (P2P) antar perangkat pengguna. Pengembang <strong>tidak memiliki server database, tidak menyadap, tidak menyimpan, dan tidak bisa melihat</strong> isi pesan atau foto Anda. Oleh karena itu, pengembang tidak dapat dan tidak akan menyediakan log data apa pun kepada pihak berwenang jika terjadi sengketa hukum.</p>
-
                 <h3>4. UU Perlindungan Data Pribadi (PDP)</h3>
                 <p>Sistem ini tidak mengumpulkan IP Address, nama, atau data pribadi pengguna ke dalam server pengembang. Segala risiko kebocoran data yang diakibatkan oleh tangkapan layar (screenshot) atau kelalaian pengguna dengan pasangannya adalah tanggung jawab mutlak pengguna.</p>
-
                 <h3>5. Bebas Tanggung Jawab Mutlak</h3>
                 <p>Pengembang dilepaskan dari segala tuntutan hukum perdata maupun pidana atas penyalahgunaan platform ini. Segala aktivitas di dalam ruang obrolan menjadi tanggung jawab pribadi masing-masing individu di mata hukum.</p>
             </div>
@@ -135,12 +154,18 @@
                     <h2 style="font-size: 16px;">Ruang Kita ❤️</h2>
                     <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (Secure P2P)</span>
                 </div>
+                <!-- Tombol Panic UI -->
+                <button class="action-btn" onclick="togglePanic()" title="Panic Button (atau tekan ESC)" style="color: #ff477e;">🔒</button>
             </div>
             <div class="chat-history" id="chatHistory">
                 <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px; padding: 0 10px;">
                     Terowongan WebRTC berhasil dibuat!<br><br>Koneksi dilindungi oleh enkripsi End-to-End standar WebRTC dan filter anti-XSS.
                 </div>
             </div>
+            
+            <!-- Tempat Munculnya Animasi Typing -->
+            <div id="typingIndicator" class="typing-indicator">💬 Pasangan sedang mengetik<span>.</span><span>.</span><span>.</span></div>
+            
             <div class="chat-input-area">
                 <input type="file" id="imageInput" accept="image/jpeg, image/png, image/webp" style="display: none;" onchange="kirimGambar(event)">
                 <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto">🖼️</button>
@@ -152,6 +177,44 @@
     </div>
 
     <script>
+        // Logika Panic Button
+        let isPanic = false;
+        let prePanicAppScreenDisplay = 'none';
+
+        function togglePanic() {
+            isPanic = !isPanic;
+            if(isPanic) {
+                // Simpan status tampilan sebelum panik
+                prePanicAppScreenDisplay = document.getElementById('app-screen').style.display;
+                
+                document.getElementById('app-screen').style.display = 'none';
+                document.getElementById('pairing-screen').style.display = 'none';
+                document.getElementById('disclaimer-screen').style.display = 'none';
+                
+                const panicScreen = document.getElementById('panic-screen');
+                panicScreen.style.display = 'flex';
+                // Paksa fokus ke kotak pencarian palsu agar makin meyakinkan
+                panicScreen.querySelector('input').focus(); 
+            } else {
+                document.getElementById('panic-screen').style.display = 'none';
+                
+                // Kembalikan layar ke posisi semula
+                if(koneksi && koneksi.open) {
+                    document.getElementById('app-screen').style.display = 'flex';
+                } else if(document.getElementById('myCode').innerText !== '...') {
+                    document.getElementById('pairing-screen').style.display = 'flex';
+                } else {
+                    document.getElementById('disclaimer-screen').style.display = 'flex';
+                }
+            }
+        }
+
+        // Shortcut Keyboard ESC untuk Panic Button
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'Escape') togglePanic();
+        });
+
+
         let jumlahOnline = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
         function updateLiveCounter() {
             const perubahan = Math.floor(Math.random() * 7) - 3; 
@@ -248,6 +311,18 @@
                 if (typeof data !== 'object' || data === null) return;
                 if (data.tipe === 'ping') return;
                 
+                // Menangkap Sinyal Typing dari Pasangan
+                if (data.tipe === 'typing') {
+                    document.getElementById('typingIndicator').style.display = 'block';
+                    return;
+                } else if (data.tipe === 'stop_typing') {
+                    document.getElementById('typingIndicator').style.display = 'none';
+                    return;
+                }
+                
+                // Matikan indikator typing saat pesan beneran masuk
+                document.getElementById('typingIndicator').style.display = 'none';
+
                 const waktu = (typeof data.waktu === 'string' && data.waktu.length <= 5) ? data.waktu : dapatkanWaktu();
 
                 document.getElementById('notifSound').play().catch(e => { });
@@ -303,10 +378,34 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
+        // Logika Mengirim Sinyal Typing Saat Input Diisi
+        let typingTimer;
+        let isTypingNow = false;
+        
+        document.getElementById('messageInput').addEventListener('input', function() {
+            if(!koneksi || !koneksi.open) return;
+            
+            if(!isTypingNow) {
+                isTypingNow = true;
+                koneksi.send({ tipe: 'typing' });
+            }
+            
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(function() {
+                isTypingNow = false;
+                koneksi.send({ tipe: 'stop_typing' });
+            }, 2000); // Sinyal hilang jika tidak ngetik selama 2 detik
+        });
+
         function kirimTeks() {
             const input = document.getElementById('messageInput');
             const pesan = input.value.trim();
             if (pesan !== "" && koneksi && koneksi.open) {
+                // Hentikan sinyal typing seketika
+                clearTimeout(typingTimer);
+                isTypingNow = false;
+                koneksi.send({ tipe: 'stop_typing' });
+
                 const waktu = dapatkanWaktu();
                 tampilkanPesanKeLayar(pesan, 'teks', 'me', waktu);
                 koneksi.send({ tipe: 'teks', isi: pesan, waktu: waktu });
