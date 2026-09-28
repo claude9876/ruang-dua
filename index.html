@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- LAPISAN KEAMANAN CSP -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' https://assets.mixkit.co; connect-src *;">
     
     <title>RuangDua - P2P Secret Room</title>
@@ -26,6 +27,7 @@
 
         .main-logo { max-width: 200px; width: 100%; height: auto; margin: 0 auto 15px auto; display: block; animation: logo-pulse 2.5s infinite ease-in-out; }
         
+        /* --- LAYAR PERSETUJUAN & PAIRING --- */
         #disclaimer-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 200; padding: 20px; }
         .disclaimer-box { background-color: var(--panel-bg); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; border: 1px solid #333; display: flex; flex-direction: column; max-height: 90vh; align-items: center; }
         .disclaimer-text { width: 100%; overflow-y: auto; font-size: 13px; color: var(--text-muted); line-height: 1.6; background: #181818; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: justify; border: 1px solid #2d2d2d; }
@@ -46,6 +48,7 @@
         .code-display { font-size: 40px; font-weight: bold; letter-spacing: 6px; background: #2d2d2d; padding: 15px; border-radius: 12px; margin-bottom: 10px; color: white; user-select: all; }
         .input-code { width: 100%; background-color: #2d2d2d; border: none; border-radius: 12px; padding: 15px; color: white; font-size: 20px; text-align: center; margin-bottom: 15px; outline: none; letter-spacing: 4px; text-transform: uppercase; }
 
+        /* --- LAYAR APLIKASI UTAMA --- */
         #app-screen { display: none; width: 100%; height: 100%; }
         .sidebar { width: 80px; background-color: var(--panel-bg); display: flex; flex-direction: column; align-items: center; padding: 20px 0; border-right: 1px solid #333; z-index: 10; }
         .nav-item { width: 50px; height: 50px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; transition: 0.3s; }
@@ -68,16 +71,25 @@
         .message img { max-width: 100%; border-radius: 12px; margin-top: 5px; display: block; }
         .time { font-size: 10px; color: #ccc; display: block; margin-top: 5px; text-align: right; }
 
+        /* --- INPUT AREA & CUSTOM ICONS CSS --- */
         .chat-input-area { padding: 15px; background-color: var(--panel-bg); display: flex; gap: 8px; align-items: center; border-top: 1px solid #333; }
-        .action-btn { background: none; border: none; font-size: 22px; padding: 5px; color: var(--text-muted); cursor: pointer; }
-        .input-box { flex: 1; background-color: #2d2d2d; border: none; border-radius: 20px; padding: 12px 15px; color: white; outline: none; }
-        .send-btn { background-color: var(--primary); border: none; border-radius: 50%; width: 40px; height: 40px; color: white; font-weight: bold; cursor: pointer; }
+        
+        .action-btn { background: none; border: none; padding: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn img { width: 28px; height: 28px; object-fit: contain; transition: transform 0.2s; }
+        .action-btn:hover img { transform: scale(1.1); }
+        
+        .input-box { flex: 1; background-color: #2d2d2d; border: none; border-radius: 20px; padding: 12px 15px; color: white; outline: none; font-size: 14px; }
+        
+        .send-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; margin-left: 5px; }
+        .send-btn img { width: 40px; height: 40px; object-fit: contain; transition: transform 0.2s; }
+        .send-btn:hover img { transform: scale(1.1); }
+        .send-btn:active img { transform: scale(0.9); }
 
-        /* Tampilan Panic Screen (Google Palsu) */
+        /* --- TAMPILAN PANIC SCREEN (Google Palsu) --- */
         #panic-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; font-family: Arial, sans-serif; }
         .fake-google-logo { font-size: 80px; font-weight: bold; margin-bottom: 25px; letter-spacing: -3px; }
         .fake-search-bar { width: 90%; max-width: 580px; padding: 14px 20px; border-radius: 24px; border: 1px solid #dfe1e5; box-shadow: 0 1px 6px rgba(32,33,36,.28); display: flex; align-items: center; }
-        .fake-search-bar input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; }
+        .fake-search-bar input { border: none; outline: none; width: 100%; font-size: 16px; background: transparent; color: #000; }
 
         @media (max-width: 768px) {
             #app-screen { flex-direction: column; }
@@ -88,9 +100,10 @@
     </style>
 </head>
 <body>
+    <!-- Audio Notifikasi -->
     <audio id="notifSound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
 
-    <!-- PANIC SCREEN (Google Clone) -->
+    <!-- 0. LAYAR PANIC (Google Clone) -->
     <div id="panic-screen">
         <div class="fake-google-logo">
             <span style="color:#4285F4">G</span><span style="color:#EA4335">o</span><span style="color:#FBBC05">o</span><span style="color:#4285F4">g</span><span style="color:#34A853">l</span><span style="color:#EA4335">e</span>
@@ -101,8 +114,10 @@
         <p style="margin-top: 30px; font-size: 12px; color: #70757a;">Tekan ESC lagi untuk kembali</p>
     </div>
 
+    <!-- 1. LAYAR DISCLAIMER HUKUM -->
     <div id="disclaimer-screen">
         <div class="disclaimer-box">
+            <!-- Pastikan file logo Anda dinamai "1000171747.png" dan berada di folder yang sama -->
             <img src="1000171747.png" alt="Logo RuangDua" class="main-logo" onerror="this.style.display='none'">
             <h1 style="margin-top: 0;">Syarat & Ketentuan</h1>
             <div class="disclaimer-text">
@@ -130,6 +145,7 @@
         </div>
     </div>
 
+    <!-- 2. LAYAR PAIRING KONEKSI -->
     <div id="pairing-screen">
         <div class="pairing-box">
             <img src="1000171747.png" alt="Logo RuangDua" class="main-logo" onerror="this.style.display='none'">
@@ -143,6 +159,7 @@
         </div>
     </div>
 
+    <!-- 3. LAYAR APLIKASI UTAMA (CHAT ROOM) -->
     <div id="app-screen">
         <div class="sidebar">
             <div class="nav-item active">💬</div>
@@ -154,9 +171,10 @@
                     <h2 style="font-size: 16px;">Ruang Kita ❤️</h2>
                     <span style="font-size: 11px; color: #4caf50;">● Terhubung Langsung (Secure P2P)</span>
                 </div>
-                <!-- Tombol Panic UI -->
-                <button class="action-btn" onclick="togglePanic()" title="Panic Button (atau tekan ESC)" style="color: #ff477e;">🔒</button>
+                <!-- Tombol Gembok Panic UI -->
+                <button class="action-btn" onclick="togglePanic()" title="Panic Button (atau tekan ESC)" style="color: #ff477e; font-size: 22px;">🔒</button>
             </div>
+            
             <div class="chat-history" id="chatHistory">
                 <div style="text-align:center; font-size:12px; color:#4caf50; margin-bottom:20px; padding: 0 10px;">
                     Terowongan WebRTC berhasil dibuat!<br><br>Koneksi dilindungi oleh enkripsi End-to-End standar WebRTC dan filter anti-XSS.
@@ -166,39 +184,45 @@
             <!-- Tempat Munculnya Animasi Typing -->
             <div id="typingIndicator" class="typing-indicator">💬 Pasangan sedang mengetik<span>.</span><span>.</span><span>.</span></div>
             
+            <!-- Area Input Menggunakan Ikon Custom Kustom -->
             <div class="chat-input-area">
                 <input type="file" id="imageInput" accept="image/jpeg, image/png, image/webp" style="display: none;" onchange="kirimGambar(event)">
-                <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto">🖼️</button>
-                <button class="action-btn" style="color: #ffb703;" onclick="kirimBuzz()">💓</button>
+                
+                <!-- Ikon Galeri -->
+                <button class="action-btn" onclick="document.getElementById('imageInput').click()" title="Kirim Foto">
+                    <img src="ikon-galeri.png" alt="Galeri" onerror="this.outerHTML='🖼️'">
+                </button>
+                
+                <!-- Ikon Buzz/Getar -->
+                <button class="action-btn" onclick="kirimBuzz()" title="Kirim Getaran">
+                    <img src="ikon-getar.png" alt="Getaran" onerror="this.outerHTML='💓'">
+                </button>
+                
                 <input type="text" id="messageInput" class="input-box" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') kirimTeks()">
-                <button class="send-btn" onclick="kirimTeks()">➤</button>
+                
+                <!-- Ikon Kirim -->
+                <button class="send-btn" onclick="kirimTeks()" title="Kirim Pesan">
+                    <img src="ikon-kirim.png" alt="Kirim" onerror="this.outerHTML='➤'">
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- 4. LOGIKA JAVASCRIPT UTAMA -->
     <script>
-        // Logika Panic Button
+        // --- LOGIKA PANIC BUTTON ---
         let isPanic = false;
-        let prePanicAppScreenDisplay = 'none';
-
         function togglePanic() {
             isPanic = !isPanic;
             if(isPanic) {
-                // Simpan status tampilan sebelum panik
-                prePanicAppScreenDisplay = document.getElementById('app-screen').style.display;
-                
                 document.getElementById('app-screen').style.display = 'none';
                 document.getElementById('pairing-screen').style.display = 'none';
                 document.getElementById('disclaimer-screen').style.display = 'none';
-                
                 const panicScreen = document.getElementById('panic-screen');
                 panicScreen.style.display = 'flex';
-                // Paksa fokus ke kotak pencarian palsu agar makin meyakinkan
                 panicScreen.querySelector('input').focus(); 
             } else {
                 document.getElementById('panic-screen').style.display = 'none';
-                
-                // Kembalikan layar ke posisi semula
                 if(koneksi && koneksi.open) {
                     document.getElementById('app-screen').style.display = 'flex';
                 } else if(document.getElementById('myCode').innerText !== '...') {
@@ -208,13 +232,9 @@
                 }
             }
         }
+        document.addEventListener('keydown', function(e) { if(e.key === 'Escape') togglePanic(); });
 
-        // Shortcut Keyboard ESC untuk Panic Button
-        document.addEventListener('keydown', function(e) {
-            if(e.key === 'Escape') togglePanic();
-        });
-
-
+        // --- GIMMICK LIVE COUNTER ---
         let jumlahOnline = Math.floor(Math.random() * (120 - 45 + 1)) + 45;
         function updateLiveCounter() {
             const perubahan = Math.floor(Math.random() * 7) - 3; 
@@ -236,6 +256,7 @@
             inisialisasiSistemWebRTC();
         }
 
+        // --- SISTEM WEBRTC (P2P) ---
         let peer, koneksi, pingInterval;        
 
         function buatIDPendek() {
@@ -248,6 +269,7 @@
             const statusText = document.getElementById('status-text');
             const connectBtn = document.getElementById('connectBtn');
 
+            // Konfigurasi Server Publik (Opsi 2 Tanpa Render)
             peer = new Peer(myID, {
                 config: {
                     'iceServers': [
@@ -301,10 +323,9 @@
             document.getElementById('pairing-screen').style.display = 'none';
             document.getElementById('app-screen').style.display = 'flex';
 
+            // Heartbeat untuk mencegah koneksi diputus browser
             pingInterval = setInterval(() => {
-                if (koneksi && koneksi.open) {
-                    koneksi.send({ tipe: 'ping' });
-                }
+                if (koneksi && koneksi.open) { koneksi.send({ tipe: 'ping' }); }
             }, 15000);
 
             koneksi.on('data', function(data) {
@@ -320,13 +341,14 @@
                     return;
                 }
                 
-                // Matikan indikator typing saat pesan beneran masuk
+                // Matikan indikator typing saat pesan masuk
                 document.getElementById('typingIndicator').style.display = 'none';
 
                 const waktu = (typeof data.waktu === 'string' && data.waktu.length <= 5) ? data.waktu : dapatkanWaktu();
 
                 document.getElementById('notifSound').play().catch(e => { });
 
+                // Render Chat
                 if (data.tipe === 'teks' && typeof data.isi === 'string') {
                     tampilkanPesanKeLayar(data.isi, 'teks', 'you', waktu);
                 } else if (data.tipe === 'gambar' && typeof data.isi === 'string') {
@@ -346,6 +368,7 @@
             });
         }
 
+        // --- FUNGSI TAMPILAN DOM (ANTI-XSS) ---
         function dapatkanWaktu() {
             const now = new Date();
             return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
@@ -378,7 +401,7 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // Logika Mengirim Sinyal Typing Saat Input Diisi
+        // --- LOGIKA PENGIRIMAN PESAN & TYPING ---
         let typingTimer;
         let isTypingNow = false;
         
@@ -394,14 +417,14 @@
             typingTimer = setTimeout(function() {
                 isTypingNow = false;
                 koneksi.send({ tipe: 'stop_typing' });
-            }, 2000); // Sinyal hilang jika tidak ngetik selama 2 detik
+            }, 2000); 
         });
 
         function kirimTeks() {
             const input = document.getElementById('messageInput');
             const pesan = input.value.trim();
             if (pesan !== "" && koneksi && koneksi.open) {
-                // Hentikan sinyal typing seketika
+                // Hentikan sinyal typing saat terkirim
                 clearTimeout(typingTimer);
                 isTypingNow = false;
                 koneksi.send({ tipe: 'stop_typing' });
@@ -442,15 +465,9 @@
                             let height = img.height;
 
                             if (width > height) {
-                                if (width > MAX_WIDTH) {
-                                    height *= MAX_WIDTH / width;
-                                    width = MAX_WIDTH;
-                                }
+                                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
                             } else {
-                                if (height > MAX_HEIGHT) {
-                                    width *= MAX_HEIGHT / height;
-                                    height = MAX_HEIGHT;
-                                }
+                                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
                             }
 
                             canvas.width = width;
@@ -465,9 +482,7 @@
                             koneksi.send({ tipe: 'gambar', isi: dataGambarBase64, waktu: waktu });
                         };
                         
-                        img.onerror = function() {
-                            alert("File gambar terindikasi rusak atau tidak valid.");
-                        };
+                        img.onerror = function() { alert("File gambar terindikasi rusak atau tidak valid."); };
                         img.src = e.target.result;
                     }
                     reader.readAsDataURL(file);
